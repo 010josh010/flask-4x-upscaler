@@ -116,4 +116,4 @@ if gpu_id is not None:
 
 
 ## License
-This project is for educational use. Check the licenses of Real-ESRGAN and its dependencies before redistribution.
+This project is for educational use. Check the licenses of [Real-ESRGAN](https://github.com/xinntao/Real-ESRGAN) and its dependencies before redistribution.
