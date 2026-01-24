@@ -11,12 +11,33 @@ A minimal Flask web app that upscales images with Real-ESRGAN. Upload an image o
 - Supports PNG, JPG, JPEG, WEBP, BMP
 - Optional tiling for large images (reduces memory usage)
 
-## Requirements
-- Tested on Python 3.12.*
-- NVIDIA GPU recommended for best performance
-- Real-ESRGAN model file (default path below)
+## Docker (Recommended)
 
-## Quick Start
+For GPU support, install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) first.
+
+```bash
+git clone https://github.com/010josh010/flask-image-upscaler.git
+cd flask-image-upscaler
+
+# GPU
+docker compose --profile gpu up -d --build
+```
+CPU only build
+```bash
+# CPU
+docker compose --profile cpu up -d --build
+```
+
+Open http://localhost:5000. Models are included in the image.
+
+## Manual Setup
+
+### Requirements
+- Python 3.12.*
+- NVIDIA GPU recommended for best performance
+- Real-ESRGAN model file (see below)
+
+### Quick Start
 ```bash
 # create and activate a virtual env (example)
 python -m venv .venv

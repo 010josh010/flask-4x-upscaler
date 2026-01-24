@@ -1,0 +1,43 @@
+services:
+  upscaler-gpu:
+    profiles: ["gpu"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        COMPUTE_MODE: gpu
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
+      # Uncomment to use custom models instead of built-in ones:
+      # - ./weights:/app/weights
+    environment:
+      - DEV_SECRET=${DEV_SECRET:-change-me-in-production}
+      - REAL_ESRGAN_MODEL=weights/RealESRGAN_x4plus.pth
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  upscaler-cpu:
+    profiles: ["cpu"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        COMPUTE_MODE: cpu
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./uploads:/app/uploads
+      - ./outputs:/app/outputs
+      # Uncomment to use custom models instead of built-in ones:
+      # - ./weights:/app/weights
+    environment:
+      - DEV_SECRET=${DEV_SECRET:-change-me-in-production}
+      - REAL_ESRGAN_MODEL=weights/RealESRGAN_x4plus.pth

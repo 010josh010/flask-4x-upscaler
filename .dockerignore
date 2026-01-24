@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+uploads/
+outputs/
+weights/
+.env
+*.md
+!README.md
+.git/
+.gitignore
+.vscode/
