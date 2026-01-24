@@ -130,7 +130,8 @@ button[disabled] {
 
 label { display: block; margin-bottom: 0.5rem; }
 
-input[type="number"] {
+input[type="number"],
+select {
   display: block;
   background: var(--input-bg);
   border: 1px solid var(--border);
@@ -139,6 +140,37 @@ input[type="number"] {
   border-radius: 8px;
   width: 100%;
   margin-bottom: 0.75rem;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="number"]:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(110, 168, 254, 0.15);
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a8b0c2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+select:hover {
+  border-color: var(--accent);
+}
+
+select option {
+  background: var(--card);
+  color: var(--text);
+  padding: 0.5rem;
 }
 
 /* Drag and drop zone */

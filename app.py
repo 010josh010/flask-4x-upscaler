@@ -29,11 +29,20 @@ app.secret_key =  os.environ.get("DEV_SECRET", 'dev-secret') # change this in pr
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_DIR = BASE_DIR / "uploads"
 OUTPUT_DIR = BASE_DIR / "outputs"
+WEIGHTS_DIR = BASE_DIR / "weights"
 UPLOAD_DIR.mkdir(exist_ok=True)
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 # Pulls your Real-ESRGAN x4 model as specified in your .env or uses a default path
-MODEL_PATH = os.environ.get("REAL_ESRGAN_MODEL", "weights/RealESRGAN_x4plus.pth")
+DEFAULT_MODEL = os.environ.get("REAL_ESRGAN_MODEL", "weights/RealESRGAN_x4plus.pth")
+
+
+def get_available_models() -> list[str]:
+    """Scan the weights directory for available model files (.pth)."""
+    if not WEIGHTS_DIR.exists():
+        return []
+    models = [f.name for f in WEIGHTS_DIR.glob("*.pth")]
+    return sorted(models)
 
 ALLOWED_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "bmp"}
 
@@ -42,12 +51,13 @@ def _allowed(filename: str) -> bool:
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
-def _do_upscale(src_path: str, dst_path: str, *, slice_tiles: Optional[int] = None) -> None:
+def _do_upscale(src_path: str, dst_path: str, *, slice_tiles: Optional[int] = None, model_path: Optional[str] = None) -> None:
     """Run your ESRGAN logic and write the upscaled image to dst_path."""
+    model = model_path or DEFAULT_MODEL
     if slice_tiles:
-        result_bgr = upscale_slice(MODEL_PATH, src_path, slice_tiles)
+        result_bgr = upscale_slice(model, src_path, slice_tiles)
     else:
-        result_bgr = upscale(MODEL_PATH, src_path)
+        result_bgr = upscale(model, src_path)
 
     cv2.imwrite(dst_path, result_bgr)  # pylint: disable=no-member
 
@@ -56,7 +66,9 @@ def _do_upscale(src_path: str, dst_path: str, *, slice_tiles: Optional[int] = No
 def index():
     """Home page: upload form + current time."""
     now = datetime.now()
-    return render_template("index.html", now=now)
+    models = get_available_models()
+    default_model = Path(DEFAULT_MODEL).name if DEFAULT_MODEL else None
+    return render_template("index.html", now=now, models=models, default_model=default_model)
 
 
 @app.route("/upload", methods=["POST"])
@@ -85,11 +97,17 @@ def upload():
     slice_tiles = request.form.get("slice_tiles")
     tiles = int(slice_tiles) if slice_tiles and slice_tiles.isdigit() else None
 
+    # Get selected model
+    selected_model = request.form.get("model")
+    model_path = None
+    if selected_model and selected_model in get_available_models():
+        model_path = str(WEIGHTS_DIR / selected_model)
+
     out_name = f"{job_id}.png"
     out_path = str(OUTPUT_DIR / out_name)
 
     try:
-        _do_upscale(src_path, out_path, slice_tiles=tiles)
+        _do_upscale(src_path, out_path, slice_tiles=tiles, model_path=model_path)
     except (RuntimeError, OSError, ValueError) as exc:
         flash(f"Upscale failed: {exc}")
         return redirect(url_for("index"))

@@ -21,6 +21,20 @@ GPU_ID = 0
 SCALE = 4
 NAMING_FORMAT = "tile_r{row}_c{col}.png"
 
+# Model configurations: (num_block, num_grow_ch)
+MODEL_CONFIGS = {
+    "anime_6B": (6, 32),   # RealESRGAN_x4plus_anime_6B
+    "default": (23, 32),   # RealESRGAN_x4plus and others
+}
+
+
+def _get_model_config(model_path: str) -> tuple[int, int]:
+    """Determine model configuration based on filename."""
+    model_name = model_path.lower()
+    if "anime_6b" in model_name or "anime6b" in model_name:
+        return MODEL_CONFIGS["anime_6B"]
+    return MODEL_CONFIGS["default"]
+
 
 def convert_from_image_to_cv2(img: Image.Image) -> np.ndarray:
     """Convert a PIL Image (RGB) to an OpenCV ndarray (BGR)."""
@@ -43,8 +57,9 @@ def _best_grid(n_tiles: int) -> tuple[int, int]:
 
 def _make_upsampler(model_path: str) -> RealESRGANer:
     """Build a RealESRGAN upsampler for the RRDBNet x4 model."""
+    num_block, num_grow_ch = _get_model_config(model_path)
     model = RRDBNet(
-        num_in_ch=3, num_out_ch=3, num_feat=64, num_block=6, num_grow_ch=32, scale=SCALE
+        num_in_ch=3, num_out_ch=3, num_feat=64, num_block=num_block, num_grow_ch=num_grow_ch, scale=SCALE
     )
     return RealESRGANer(
         scale=SCALE,

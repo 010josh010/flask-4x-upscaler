@@ -1,14 +1,15 @@
 ![Logo](https://i.ibb.co/LWY1P0D/resized.png)
 
-# Flask Upscaler
+# flask-image-upscaler
 A minimal Flask web app that upscales images with Real-ESRGAN. Upload an image on the home page and download the upscaled result on the results page. Uses shared templates, a single stylesheet, and simple navigation.
 
 ## Features
 - Upload → upscale → download flow
+- Model selection dropdown (auto-detects models in `weights/` folder)
 - Three routes: `/`, `/result/<job_id>`, `/about`
 - Shared CSS with easy to tweak variables
 - Supports PNG, JPG, JPEG, WEBP, BMP
-- Optional tiling parameter in the form (commented in template)
+- Optional tiling for large images (reduces memory usage)
 
 ## Requirements
 - Tested on Python 3.12.*
@@ -39,25 +40,26 @@ python -m pip install -r requirements.txt
 
 ## Download a compatible Real-ESRGAN model
 
-This app needs a pretrained ESRGAN model file. For anime and line art, the anime 6B model works well.
+This app needs a pretrained ESRGAN model file. You can download multiple models and select between them in the UI.
 
 **Download:**
-- RealESRGAN x4plus anime 6B  
-  https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.2.4/RealESRGAN_x4plus_anime_6B.pth
+- [RealESRGAN_x4plus.pth](https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth) - General purpose, works well on most images
+- [RealESRGAN_x4plus_anime_6B.pth](https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.2.4/RealESRGAN_x4plus_anime_6B.pth) - Optimized for anime and line art
 
-**Place the file:**
+**Place the files:**
 ```bash
 # Create a weights folder in your project root if it does not exist
 mkdir -p weights
-# macOS/Linux
+# Download models (macOS/Linux)
+curl -L -o weights/RealESRGAN_x4plus.pth "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.1.0/RealESRGAN_x4plus.pth"
 curl -L -o weights/RealESRGAN_x4plus_anime_6B.pth "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.2.4/RealESRGAN_x4plus_anime_6B.pth"
 ```
 
 ## Environment file
 Create a `.env` file in the project root. **Do not commit** this file to source control.
 ```
-# Path to your RealESRGAN model
-REAL_ESRGAN_MODEL=weights/RealESRGAN_x4plus_anime_6B.pth
+# Default model (pre-selected in the dropdown)
+REAL_ESRGAN_MODEL=weights/RealESRGAN_x4plus.pth
 # Change this in production
 DEV_SECRET=<your_secret_here>
 ```
@@ -89,7 +91,7 @@ if gpu_id is not None:
 ## Troubleshooting
 - If `basicsr` from PyPI fails on newer Python, the requirements pull it directly from GitHub.
 - If installs complain about CUDA on unsupported hardware, switch to CPU PyTorch as shown above.
-- Very large images can consume a lot of RAM. Consider using the optional tiling input (commented in the upload form).
+- Very large images can consume a lot of VRAM. Use the optional tiles input in the upload form to reduce memory usage.
 
 
 ## License

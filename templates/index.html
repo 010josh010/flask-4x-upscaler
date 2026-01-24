@@ -21,19 +21,25 @@
     </div>
   </div>
 
-  <!-- Optional tiles input (kept commented)
-  <label for="slice_tiles">Approx tiles (optional):</label>
+  <!-- Model selection -->
+  <label for="model"><i class="fa-solid fa-cube"></i>Model:</label>
+  <select id="model" name="model">
+    {% for model in models %}
+    <option value="{{ model }}" {% if model == default_model %}selected{% endif %}>{{ model }}</option>
+    {% else %}
+    <option value="" disabled>No models found in weights/</option>
+    {% endfor %}
+  </select>
+
+  <!-- Optional tiles input -->
+  <label for="slice_tiles"><i class="fa-solid fa-table-cells"></i>Tiles (optional, reduces memory usage):</label>
   <input id="slice_tiles" name="slice_tiles" type="number" min="2" max="64" placeholder="4">
-  -->
 
   <button id="upload-btn" type="submit">
     <i class="fa-solid fa-wand-magic-sparkles"></i>
     Upscale
   </button>
 </form>
-
-<h3>Current Date & Time</h3>
-<p>{{ now.strftime("%Y-%m-%d %H:%M:%S") }}</p>
 
 <script>
   // Drag and drop + file preview functionality
