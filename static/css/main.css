@@ -283,6 +283,26 @@ button, .btn {
 }
 button:hover, .btn:hover { filter: brightness(1.05); }
 
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 600;
+}
+.btn-outline:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.back-link {
+  margin-bottom: 1rem;
+}
+
 .flash {
   background: var(--flash-bg);
   border: 1px solid var(--flash-border);
