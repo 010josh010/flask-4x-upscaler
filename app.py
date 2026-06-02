@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 
 from flask import (
     Flask, render_template, request, redirect, url_for,
-    send_from_directory, flash
+    send_from_directory, flash, session
 )
 from werkzeug.utils import secure_filename
 
@@ -67,8 +67,19 @@ def index():
     """Home page: upload form + current time."""
     now = datetime.now()
     models = get_available_models()
-    default_model = Path(DEFAULT_MODEL).name if DEFAULT_MODEL else None
-    return render_template("index.html", now=now, models=models, default_model=default_model)
+    env_default = Path(DEFAULT_MODEL).name if DEFAULT_MODEL else None
+    # Persisted user selection takes precedence over the env default.
+    selected_model = session.get("model")
+    if selected_model not in models:
+        selected_model = env_default
+    selected_tiles = session.get("slice_tiles")
+    return render_template(
+        "index.html",
+        now=now,
+        models=models,
+        selected_model=selected_model,
+        selected_tiles=selected_tiles,
+    )
 
 
 @app.route("/upload", methods=["POST"])
@@ -96,12 +107,16 @@ def upload():
     # You can expose this via a checkbox/select on the form if you want.
     slice_tiles = request.form.get("slice_tiles")
     tiles = int(slice_tiles) if slice_tiles and slice_tiles.isdigit() else None
+    # Persist the tile setting so it's pre-filled on the next visit.
+    session["slice_tiles"] = tiles
 
     # Get selected model
     selected_model = request.form.get("model")
     model_path = None
     if selected_model and selected_model in get_available_models():
         model_path = str(WEIGHTS_DIR / selected_model)
+        # Persist the model choice so it's re-selected on the next visit.
+        session["model"] = selected_model
 
     out_name = f"{job_id}.png"
     out_path = str(OUTPUT_DIR / out_name)

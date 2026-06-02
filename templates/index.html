@@ -25,7 +25,7 @@
   <label for="model"><i class="fa-solid fa-cube"></i>Model:</label>
   <select id="model" name="model">
     {% for model in models %}
-    <option value="{{ model }}" {% if model == default_model %}selected{% endif %}>{{ model }}</option>
+    <option value="{{ model }}" {% if model == selected_model %}selected{% endif %}>{{ model }}</option>
     {% else %}
     <option value="" disabled>No models found in weights/</option>
     {% endfor %}
@@ -33,7 +33,8 @@
 
   <!-- Optional tiles input -->
   <label for="slice_tiles"><i class="fa-solid fa-table-cells"></i>Tiles (optional, reduces memory usage):</label>
-  <input id="slice_tiles" name="slice_tiles" type="number" min="4" max="64" step="4" placeholder="4">
+  <input id="slice_tiles" name="slice_tiles" type="number" min="4" max="64" step="4" placeholder="4"
+    {% if selected_tiles %}value="{{ selected_tiles }}"{% endif %}>
 
   <button id="upload-btn" type="submit">
     <i class="fa-solid fa-wand-magic-sparkles"></i>
