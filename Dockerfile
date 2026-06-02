@@ -5,7 +5,8 @@ ARG COMPUTE_MODE=gpu
 
 WORKDIR /app
 
-# Install system dependencies for OpenCV, image processing, git (for basicsr), and curl (for models)
+# Install system dependencies for OpenCV, image processing, git (for basicsr),
+# curl (for models), and ffmpeg (frame extraction + video reassembly)
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get update && \
@@ -18,6 +19,7 @@ RUN apt-get clean && \
     libgomp1 \
     git \
     curl \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PyTorch first based on COMPUTE_MODE
@@ -40,12 +42,12 @@ RUN UTILS_PATH=$(python -c "import realesrgan; import os; print(os.path.join(os.
     sed -i 's/if gpu_id:/if gpu_id is not None:/' "$UTILS_PATH"
 
 # Copy application code
-COPY app.py upscaler.py ./
+COPY app.py upscaler.py video_upscaler.py jobs.py ./
 COPY templates/ templates/
 COPY static/ static/
 
-# Create directories for runtime data
-RUN mkdir -p uploads outputs weights
+# Create directories for runtime data (tmp holds per-job extracted frames)
+RUN mkdir -p uploads outputs weights tmp
 
 # Download Real-ESRGAN model weights
 RUN curl -L -o weights/RealESRGAN_x4plus.pth \

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>{{ title or "Image Upscaler" }}</title>
+  <title>{{ title or "Upscaler" }}</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- Internal stylesheet, svg, and favicon -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
@@ -16,7 +16,7 @@
 <header class="site-header">
   <div class="brand">
     <img src="{{ url_for('static', filename='img/logo.svg') }}" alt="" class="site-logo">
-    <h1 class="site-title"><a href="{{ url_for('index') }}">Image Upscaler</a></h1>
+    <h1 class="site-title"><a href="{{ url_for('index') }}">Upscaler</a></h1>
   </div>
   <nav class="site-nav">
     <a href="{{ url_for('index') }}"><i class="fa-solid fa-house"></i> Home</a>

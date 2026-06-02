@@ -4,8 +4,16 @@ __pycache__/
 *.pyc
 uploads/
 outputs/
+tmp/
 .env
 weights/
 *.pth
 *.md
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.bmp
+*.mp4
+*.mkv
 !README.md

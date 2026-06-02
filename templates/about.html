@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>About This App</h1>
-<p>This is a simple Flask application that lets you upload an image and upscale it using Real-ESRGAN.</p>
+<p>This is a simple Flask application that lets you upload an image or video and upscale it using Real-ESRGAN.</p>
 
 <h2>What’s Included</h2>
 <ul>
-  <li>Three routes: Home, Result, and About</li>
-  <li>Shared stylesheet via Flask’s static folder</li>
-  <li>Template inheritance with a base layout</li>
+  <li>Image and video (MP4/MKV) upscaling with live progress</li>
+  <li>Pause/Resume and Terminate controls for long video jobs</li>
+  <li>Shared stylesheet via Flask’s static folder, with template inheritance</li>
 </ul>
 
 <h3>Useful Links</h3>
 <ol>
   <li><a href="https://flask.palletsprojects.com/" target="_blank" rel="noopener">Flask Documentation</a></li>
   <li><a href="https://github.com/xinntao/Real-ESRGAN" target="_blank" rel="noopener">Real-ESRGAN</a></li>
-  <li><a href="https://github.com/010josh010/flask-upscaler" target="_blank" rel="noopener">Github Source Code</a></li>
+  <li><a href="https://github.com/010josh010/flask-4x-upscaler" target="_blank" rel="noopener">Github Source Code</a></li>
 </ol>
 
 {% endblock %}

@@ -1,19 +1,21 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Upload an Image to Upscale</h2>
-<p>Choose a PNG, JPG, JPEG, WEBP, or BMP image. The result will be previewed and downloadable on the next page.</p>
+<h2>Upload an Image or Video to Upscale</h2>
+<p>Images: PNG, JPG, JPEG, WEBP, BMP. Video: MP4, MKV. Pick a file, confirm the preview, then upscale.</p>
 
-<form id="upload-form" action="{{ url_for('upload') }}" method="post" enctype="multipart/form-data" class="card">
+<!-- Upload + options -->
+<section id="upload-section" class="card">
   <div id="drop-zone" class="drop-zone">
-    <input id="image" name="image" type="file" accept=".png,.jpg,.jpeg,.webp,.bmp" required>
+    <input id="file" name="file" type="file"
+      accept=".png,.jpg,.jpeg,.webp,.bmp,.mp4,.mkv" required>
     <div class="drop-zone-content">
       <i class="fa-solid fa-cloud-arrow-up"></i>
-      <p class="drop-zone-heading">Drag and Drop or Select Image file</p>
+      <p class="drop-zone-heading">Drag and Drop or Select a File</p>
       <button type="button" class="choose-file-btn">
         <i class="fa-regular fa-folder-open"></i>
         Choose File
       </button>
-      <p class="drop-zone-formats">Supported: PNG, JPG, JPEG, WEBP, BMP</p>
+      <p class="drop-zone-formats">Images: PNG, JPG, JPEG, WEBP, BMP &middot; Video: MP4, MKV</p>
     </div>
     <div id="file-preview" class="file-preview" style="display: none;">
       <img id="preview-image" src="" alt="Preview">
@@ -36,105 +38,68 @@
   <input id="slice_tiles" name="slice_tiles" type="number" min="4" max="64" step="4" placeholder="4"
     {% if selected_tiles %}value="{{ selected_tiles }}"{% endif %}>
 
-  <button id="upload-btn" type="submit">
+  <button id="upscale-btn" type="button" disabled>
     <i class="fa-solid fa-wand-magic-sparkles"></i>
     Upscale
   </button>
-</form>
+  <p id="upload-error" class="form-error" style="display: none;"></p>
+</section>
 
-<script>
-  // Drag and drop + file preview functionality
-  (function () {
-    const form = document.getElementById('upload-form');
-    const btn = document.getElementById('upload-btn');
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('image');
-    const filePreview = document.getElementById('file-preview');
-    const previewImage = document.getElementById('preview-image');
-    const fileName = document.getElementById('file-name');
-    const dropZoneContent = dropZone.querySelector('.drop-zone-content');
+<!-- Progress while a job runs -->
+<section id="progress-section" class="card" style="display: none;">
+  <div class="stage-row">
+    <span id="stage-label" class="stage-label">Starting…</span>
+    <span id="frame-count" class="frame-count"></span>
+  </div>
+  <div class="progress-bar">
+    <div id="progress-fill" class="progress-fill"></div>
+  </div>
 
-    // Click to browse (both on drop zone and choose file button)
-    dropZone.addEventListener('click', function (e) {
-      if (e.target !== fileInput) {
-        fileInput.click();
-      }
-    });
+  <div id="compare-view" class="compare-view" style="display: none;">
+    <div class="compare-labels">
+      <span>Original</span>
+      <span>Upscaled</span>
+    </div>
+    <img id="compare-image" src="" alt="Original vs upscaled preview">
+  </div>
 
-    const chooseFileBtn = dropZone.querySelector('.choose-file-btn');
-    if (chooseFileBtn) {
-      chooseFileBtn.addEventListener('click', function (e) {
-        e.stopPropagation();
-        fileInput.click();
-      });
-    }
+  <div class="job-controls">
+    <button id="pause-btn" type="button" class="btn-outline" style="display: none;">
+      <i class="fa-solid fa-pause"></i> Pause
+    </button>
+    <button id="resume-btn" type="button" class="btn-outline" style="display: none;">
+      <i class="fa-solid fa-play"></i> Resume
+    </button>
+    <button id="terminate-btn" type="button" class="btn-outline btn-danger">
+      <i class="fa-solid fa-stop"></i> Terminate Job
+    </button>
+  </div>
+</section>
 
-    // Prevent default drag behaviors
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      dropZone.addEventListener(eventName, preventDefaults, false);
-      document.body.addEventListener(eventName, preventDefaults, false);
-    });
+<!-- Result -->
+<section id="result-section" class="card" style="display: none;">
+  <h3 id="result-heading">Done!</h3>
+  <div class="preview">
+    <img id="result-image" src="" alt="Upscaled result" style="display: none;">
+    <video id="result-video" controls style="display: none; max-width: 100%;"></video>
+  </div>
+  <div class="actions-row">
+    <a id="download-link" class="btn-outline" href="#">
+      <i class="fa-solid fa-download"></i> Download Result
+    </a>
+    <a class="btn-outline" href="{{ url_for('index') }}">
+      <i class="fa-solid fa-rotate-left"></i> Upscale Another
+    </a>
+  </div>
+</section>
 
-    function preventDefaults(e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
+<!-- Temp storage usage + manual cleanup -->
+<section class="card storage-row">
+  <span>Temporary frame files: <strong id="tmp-usage">{{ tmp_usage }}</strong></span>
+  <button id="cleanup-btn" type="button" class="btn-outline">
+    <i class="fa-solid fa-broom"></i> Clear temporary files
+  </button>
+</section>
 
-    // Highlight drop zone when dragging over it
-    ['dragenter', 'dragover'].forEach(eventName => {
-      dropZone.addEventListener(eventName, highlight, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-      dropZone.addEventListener(eventName, unhighlight, false);
-    });
-
-    function highlight() {
-      dropZone.classList.add('drop-zone-active');
-    }
-
-    function unhighlight() {
-      dropZone.classList.remove('drop-zone-active');
-    }
-
-    // Handle dropped files
-    dropZone.addEventListener('drop', handleDrop, false);
-
-    function handleDrop(e) {
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      if (files.length > 0) {
-        fileInput.files = files;
-        handleFiles(files);
-      }
-    }
-
-    // Handle file selection via input
-    fileInput.addEventListener('change', function () {
-      if (this.files.length > 0) {
-        handleFiles(this.files);
-      }
-    });
-
-    function handleFiles(files) {
-      const file = files[0];
-      if (file && file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          previewImage.src = e.target.result;
-          fileName.textContent = file.name;
-          dropZoneContent.style.display = 'none';
-          filePreview.style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-      }
-    }
-
-    // Replace button content with a spinner while the request is in action
-    form.addEventListener('submit', function () {
-      btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Upscaling…';
-    });
-  }());
-</script>
+<script src="{{ url_for('static', filename='js/job.js') }}"></script>
 {% endblock %}

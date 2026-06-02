@@ -1,23 +1,26 @@
 ![Logo](https://i.ibb.co/LWY1P0D/resized.png)
 
-# flask-image-upscaler
-A minimal Flask web app that upscales images with Real-ESRGAN. Upload an image on the home page and download the upscaled result on the results page. Uses shared templates, a single stylesheet, and simple navigation.
+# flask-4x-upscaler
+A minimal Flask web app that upscales **images and videos** with Real-ESRGAN. Drag in a file, confirm the preview, and watch it upscale with live progress. Jobs run as background processes so the page can show progress and offer Stop / Pause / Resume controls. Uses shared templates, a single stylesheet, and simple navigation.
 
 ## Features
-- Upload → upscale → download flow
+- Drag-and-drop upload → preview → upscale → download flow
+- **Images**: PNG, JPG, JPEG, WEBP, BMP
+- **Video**: MP4, MKV — frames are upscaled with Real-ESRGAN and reassembled with ffmpeg, preserving the original **audio and subtitle tracks**
+- Live progress bar with a side-by-side **Original vs Upscaled** preview while a video processes
+- **Terminate** any job; **Pause/Resume** for video (resumes from frames already done, even after a restart)
+- Manual "Clear temporary files" button to reclaim disk used by extracted frames
 - Model selection dropdown (auto-detects models in `weights/` folder)
-- Three routes: `/`, `/result/<job_id>`, `/about`
-- Shared CSS with easy to tweak variables
-- Supports PNG, JPG, JPEG, WEBP, BMP
-- Optional tiling for large images (reduces memory usage)
+- Optional tiling (reduces VRAM/memory usage on large frames)
+- Model/tiling choices persist across visits via the session
 
 ## Docker (Recommended)
 
 For GPU support, install the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html) first.
 
 ```bash
-git clone https://github.com/010josh010/flask-image-upscaler.git
-cd flask-image-upscaler
+git clone https://github.com/010josh010/flask-4x-upscaler.git
+cd flask-4x-upscaler
 
 # GPU
 docker compose --profile gpu up -d --build
@@ -34,6 +37,7 @@ Open http://localhost:5000. Models are included in the image.
 
 ### Requirements
 - Python 3.12.*
+- **ffmpeg** (and `ffprobe`) on your PATH — required for video upscaling (frame extraction + reassembly). The Docker image installs it for you.
 - NVIDIA GPU recommended for best performance
 - Real-ESRGAN model file (see below)
 
@@ -100,6 +104,20 @@ pip uninstall -y torch torchvision torchaudio
 pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision torchaudio
 ```
 
+**Check which build you have:**
+```bash
+python check_cuda.py            # prints "CUDA available: True" when the GPU is usable
+```
+
+**If it says `False` but you have an NVIDIA GPU:** a CPU build of torch may already be
+installed, in which case `pip install` reports it as "already satisfied" and won't swap it.
+Uninstall first, then reinstall the CUDA wheels:
+```bash
+pip uninstall -y torch torchvision torchaudio
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu124
+python -c "import torch; print(torch.__version__)"   # expect a +cu124 suffix
+```
+
 ## Important note for Real-ESRGAN GPU device selection
 If you have only one GPU, some dependency code in the `realesrgan` package may default to CPU unless you change the following in your local install.
 
@@ -112,7 +130,9 @@ if gpu_id is not None:
 ## Troubleshooting
 - If `basicsr` from PyPI fails on newer Python, the requirements pull it directly from GitHub.
 - If installs complain about CUDA on unsupported hardware, switch to CPU PyTorch as shown above.
-- Very large images can consume a lot of VRAM. Use the optional tiles input in the upload form to reduce memory usage.
+- Very large images/frames can consume a lot of VRAM. Use the optional tiles input in the upload form to reduce memory usage.
+- Video upscaling requires `ffmpeg`/`ffprobe` on your PATH; if a video fails immediately, verify `ffmpeg -version` works.
+- Extracted frames live in `tmp/<job_id>/` and are not deleted automatically — use the **Clear temporary files** button on the home page to reclaim disk.
 
 
 ## License

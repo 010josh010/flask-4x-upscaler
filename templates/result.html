@@ -3,16 +3,20 @@
 <a class="btn-outline back-link" href="{{ url_for('index') }}">
   <i class="fa-solid fa-arrow-left"></i> Back to Upload
 </a>
-<h2>Your Upscaled Image</h2>
-<p>Right-click the image to save it, or use the Download button for a save prompt.</p>
+<h2>Your Upscaled {{ "Video" if kind == "video" else "Image" }}</h2>
+<p>Use the Download button for a save prompt.</p>
 
 <div class="preview">
+  {% if kind == "video" %}
+  <video src="{{ preview_url }}" controls style="max-width: 100%;"></video>
+  {% else %}
   <img src="{{ preview_url }}" alt="Upscaled preview">
+  {% endif %}
 </div>
 
 <div class="actions-row">
   <a class="btn-outline" href="{{ download_url }}">
-    <i class="fa-solid fa-download"></i> Download Upscaled Image
+    <i class="fa-solid fa-download"></i> Download Upscaled {{ "Video" if kind == "video" else "Image" }}
   </a>
 </div>
 
