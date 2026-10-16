@@ -99,6 +99,12 @@ def _resolve_tiles() -> Optional[int]:
     return tiles
 
 
+@app.context_processor
+def inject_active_job() -> dict:
+    """Expose the running/paused job to every template (nav indicator + reattach)."""
+    return {"active_job_id": manager.active_job_id()}
+
+
 @app.route("/")
 def index():
     """Home page: upload form."""

@@ -46,7 +46,8 @@
 </section>
 
 <!-- Progress while a job runs -->
-<section id="progress-section" class="card" style="display: none;">
+<section id="progress-section" class="card" style="display: none;"
+  data-active-job="{{ active_job_id or '' }}">
   <div class="stage-row">
     <span id="stage-label" class="stage-label">Starting…</span>
     <span id="frame-count" class="frame-count"></span>

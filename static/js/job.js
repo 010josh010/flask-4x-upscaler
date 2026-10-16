@@ -138,6 +138,7 @@
   }
 
   function updateProgress(snap) {
+    jobKind = snap.kind;
     if (snap.status === 'done') { showResult(snap); return; }
     if (snap.status === 'terminated') { finish('Job terminated.', false); return; }
     if (snap.status === 'error') { finish('The job failed. Check the server log.', true); return; }
@@ -228,4 +229,14 @@
       cleanupBtn.disabled = false;
     }
   });
+
+  // A job is already running/paused (e.g. the user navigated away and came
+  // back): skip the upload step and reattach to its progress.
+  const activeJob = progressSection.dataset.activeJob;
+  if (activeJob) {
+    jobId = activeJob;
+    hide(uploadSection);
+    show(progressSection);
+    poll();
+  }
 }());

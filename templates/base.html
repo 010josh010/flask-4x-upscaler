@@ -19,6 +19,9 @@
     <h1 class="site-title"><a href="{{ url_for('index') }}">Upscaler</a></h1>
   </div>
   <nav class="site-nav">
+    {% if active_job_id %}
+    <a href="{{ url_for('index') }}" class="nav-job" data-job-id="{{ active_job_id }}"><i class="fa-solid fa-spinner fa-spin"></i> Job running</a>
+    {% endif %}
     <a href="{{ url_for('index') }}"><i class="fa-solid fa-house"></i> Home</a>
     <a href="{{ url_for('about') }}"><i class="fa-solid fa-circle-info"></i> About</a>
   </nav>
@@ -37,6 +40,29 @@
 
     {% block content %}{% endblock %}
   </main>
+
+  {% if active_job_id %}
+  <script>
+    // The nav indicator is rendered once at page load; drop it when the job ends.
+    (function () {
+      const link = document.querySelector('.nav-job');
+      async function check() {
+        try {
+          const res = await fetch('/status/' + link.dataset.jobId);
+          const snap = res.ok ? await res.json() : null;
+          if (!snap || (snap.status !== 'running' && snap.status !== 'paused')) {
+            link.remove();
+            return;
+          }
+        } catch (err) {
+          /* transient network hiccup; keep checking */
+        }
+        setTimeout(check, 3000);
+      }
+      setTimeout(check, 3000);
+    }());
+  </script>
+  {% endif %}
 
 </body>
 </html>

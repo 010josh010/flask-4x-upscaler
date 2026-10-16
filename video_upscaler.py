@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import glob
 import os
+import shutil
 import signal
 import subprocess
 import sys
@@ -182,7 +183,13 @@ def encode_video(
         str(tmp_out),
     ]
     subprocess.run(cmd, check=True)
-    os.replace(tmp_out, output_path)
+    # job_dir and outputs/ can be on different filesystems (outputs is a bind
+    # mount in Docker), so os.replace would fail with EXDEV. Copy to a temp name
+    # beside the destination first, then rename there so the swap stays atomic.
+    part = Path(output_path).with_name(Path(output_path).name + ".part")
+    shutil.copyfile(tmp_out, part)
+    os.replace(part, output_path)
+    tmp_out.unlink()
 
 
 def run(model_path: str, input_path: str, output_path: str, job_dir: Path,
